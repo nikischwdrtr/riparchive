@@ -56,7 +56,12 @@ type ArenaResponse = {
 // Configuration
 // --------------------------------
 
-const CHANNEL = 'doc-2glibd4reqc'
+const channels = [
+  { title: 'doc', slug: 'doc-2glibd4reqc' },
+  { title: 'artist', slug: 'artist-cv1-k9hdxhc' }
+]
+
+const selectedChannel = ref(channels[0]!.slug)
 const PER_PAGE = 100
 
 const BUFFER_BEFORE = 2
@@ -113,7 +118,7 @@ async function fetchArchive() {
 
     while (page !== null) {
       const url = new URL(
-        `https://api.are.na/v3/channels/${CHANNEL}/contents`
+        `https://api.are.na/v3/channels/${selectedChannel.value}/contents`
       )
 
       url.searchParams.set('page', String(page))
@@ -186,6 +191,18 @@ async function fetchArchive() {
       loading.value = false
     }
   }
+}
+
+async function changeChannel() {
+  images.value = []
+  currentIndex.value = 0
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'instant'
+  })
+
+  await fetchArchive()
 }
 
 // --------------------------------
@@ -322,12 +339,28 @@ function openWebsite() {
 <template>
   <main class="index-container">
 
+    <div class="channel-selector">
+      <select
+        v-model="selectedChannel"
+        aria-label="Select Are.na channel"
+        @change="changeChannel"
+      >
+        <option
+          v-for="channel in channels"
+          :key="channel.slug"
+          :value="channel.slug"
+        >
+          {{ channel.title }}
+        </option>
+      </select>
+    </div>
+
     <!-- Name overlay -->
     <div
-      class="fixed inset-0 z-50 pointer-events-none flex flex-col items-center justify-center max-sm:items-start max-sm:justify-start"
+      class="fixed inset-0 z-50 pointer-events-none grid place-items-center"
     >
       <h1
-        class="pointer-events-auto cursor-pointer"
+        class="pointer-events-auto cursor-pointer text-[3rem] max-sm:text-[1.8rem]"
         role="link"
         tabindex="0"
         @click="openWebsite"
@@ -402,6 +435,32 @@ function openWebsite() {
 
 * {
   box-sizing: border-box;
+}
+
+.channel-selector {
+  position: fixed;
+  top: 50%;
+  right: 12px;
+  left: auto;
+  transform: translateY(-50%);
+  z-index: 60;
+}
+
+.channel-selector select {
+  appearance: none;
+  -webkit-appearance: none;
+
+  font: inherit;
+  font-size: 14px;
+  color: blue;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  background: transparent;
+  border: none;
+  padding: 0;
+
+  cursor: pointer;
 }
 
 html,
@@ -562,5 +621,17 @@ h1 {
 h1:hover {
   cursor: pointer;
   filter: blur(0.5rem);
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.8rem;
+    filter: blur(0.15rem);
+  }
+}
+
+html,
+body {
+  overflow-x: clip;
 }
 </style>
